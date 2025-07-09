@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YOLOv8 CCTV Jakarta</title>
+  <title>Multi-Surveillance Car Detection Jakarta</title>
   <style>
     * {
       box-sizing: border-box;
@@ -172,11 +172,13 @@
       <a href="/set_camera/cam 3"><button class="{% if current == 'cam 3' %}active{% endif %}">Gelora Bung Karno 2</button></a>
       <a href="/set_camera/cam 4"><button class="{% if current == 'cam 4' %}active{% endif %}">Tomang</button></a>
       <a href="/set_camera/cam 5"><button class="{% if current == 'cam 5' %}active{% endif %}">Jati Pulo</button></a>
+      <a href="/set_camera/cam 6"><button class="{% if current == 'cam 6' %}active{% endif %}">Cikoko</button></a>
     </div>
 
     <div class="video-container">
       <div id="loading-text">⏳ Memuat video live...</div>
       <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Deteksi Kendaraan" onload="hideLoading()" />
+      <canvas id="vehicleChart" height="100" style="margin-top: 20px;"></canvas>
     </div>
   </main>
 
@@ -205,6 +207,65 @@
 
     updateClock();
     setInterval(updateClock, 60000);  // every minute
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+  const ctx = document.getElementById('vehicleChart').getContext('2d');
+  const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: [],
+          datasets: [{
+              label: 'Vehicle Count',
+              data: [],
+              borderColor: '#006cb9',
+              backgroundColor: 'rgba(0, 108, 185, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 2
+          }]
+      },
+      options: {
+          responsive: true,
+          scales: {
+              x: {
+                  title: { display: true, text: 'Time' }
+              },
+              y: {
+                  beginAtZero: true,
+                  title: { display: true, text: 'Vehicles' },
+                  suggestedMax: 20
+              }
+          },
+          plugins: {
+              legend: {
+                  display: false
+              },
+              title: {
+                  display: true,
+                  text: 'Average Vehicle Per-Minute',
+                  font: {
+                      size: 16
+                  },
+                  padding: {
+                      top: 10,
+                      bottom: 20
+                  }
+              }
+          }
+      }
+  });
+
+  async function updateChart() {
+      const res = await fetch('/vehicle_data');
+      const data = await res.json();
+
+      chart.data.labels = data.map(d => d.time);
+      chart.data.datasets[0].data = data.map(d => d.count);
+      chart.update();
+  }
+
+  setInterval(updateChart, 5000); // update every 5 seconds
   </script>
 
 </body>

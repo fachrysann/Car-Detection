@@ -1,26 +1,40 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, jsonify
 import cv2
 from ultralytics import YOLO
-from collections import deque, Counter
+from collections import deque, defaultdict, Counter
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Load YOLOv8 model (make sure yolov8n.pt is downloaded)
-model = YOLO("yolov8n.pt")  # or "cpu" if no GPU
+model = YOLO("yolov8n.pt")  # Load YOLOv8 model
 
-# Stream URLs
 CAMERA_STREAMS = {
     'cam 1': "https://cctv.balitower.co.id/Bendungan-Hilir-003-700014_1/tracks-v1/index.fmp4.m3u8",
     'cam 2': "https://cctv.balitower.co.id/Gelora-017-700470_2/index.fmp4.m3u8",
     'cam 3': "https://cctv.balitower.co.id/Gelora-017-700470_3/tracks-v1/index.fmp4.m3u8",
     'cam 4': "https://cctv.balitower.co.id/Tomang-004-702108_2/index.fmp4.m3u8",
-    'cam 5': "https://cctv.balitower.co.id/Jati-Pulo-001-702017_2/tracks-v1/index.fmp4.m3u8"
+    'cam 5': "https://cctv.balitower.co.id/Jati-Pulo-001-702017_2/tracks-v1/index.fmp4.m3u8",
+    'cam 6': "https://cctv.balitower.co.id/Cikoko-006-705651_4/index.fmp4.m3u8"
 }
 
-# Default selected camera
 current_camera = {'id': 'cam 1'}
 
-from datetime import datetime
+# store vehicle counts per minute
+vehicle_stats = defaultdict(lambda: defaultdict(list))  # vehicle_stats[camera_id][minute] = list of counts
+
+@app.route('/vehicle_data')
+def vehicle_data():
+    cam_id = current_camera['id']
+    stats = vehicle_stats[cam_id]
+    aggregated = []
+    for minute, counts in sorted(stats.items())[-30:]:  # last 30 minutes
+        avg_count = sum(counts) / len(counts) if counts else 0
+        aggregated.append({
+            "time": minute,
+            "count": round(avg_count, 2)
+        })
+    return jsonify(aggregated)
+
 
 @app.route('/')
 def index():
@@ -30,8 +44,7 @@ def index():
 def set_camera(cam_id):
     if cam_id in CAMERA_STREAMS:
         current_camera['id'] = cam_id
-    now = datetime.now().strftime("%d %b %Y")
-    return render_template('index.html', current=current_camera['id'], today=now)
+    return render_template('index.html', current=current_camera['id'], year=datetime.now().year)
 
 @app.route('/video_feed')
 def video_feed():
@@ -40,7 +53,7 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def generate_frames(url):
-    status_buffer = deque(maxlen=7)  # Rolling window of last 15 frames
+    status_buffer = deque(maxlen=7)
     cap = cv2.VideoCapture(url)
     if not cap.isOpened():
         print("❌ Cannot open stream:", url)
@@ -57,14 +70,12 @@ def generate_frames(url):
         results = model(frame, verbose=False)
         annotated = frame.copy()
 
-        vehicle_count = 0  # 🧮 initialize counter
-
         vehicle_count = 0
         for box in results[0].boxes:
             cls_id = int(box.cls[0])
             class_name = names[cls_id]
             if class_name not in vehicle_classes:
-                continue  # skip drawing non-vehicle classes
+                continue
 
             vehicle_count += 1
 
@@ -74,8 +85,8 @@ def generate_frames(url):
             cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(annotated, label, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            
-        # Determine this frame's traffic status (not final display yet)
+
+        # Traffic status
         if vehicle_count == 0:
             current_status = "  No vehicles"
         elif vehicle_count <= 10:
@@ -83,24 +94,18 @@ def generate_frames(url):
         else:
             current_status = "  Crowded"
 
-        # Append to buffer
         status_buffer.append(current_status)
 
-        # Use majority voting from the buffer to determine final status
-        if status_buffer:
-            most_common_status = Counter(status_buffer).most_common(1)[0][0]
-        else:
-            most_common_status = current_status  # fallback if buffer is empty
+        most_common_status = Counter(status_buffer).most_common(1)[0][0] if status_buffer else current_status
 
-        # Set label color
-        if most_common_status == "Crowded":
-            color = (0, 0, 255)
-        elif most_common_status == "Less traffic":
-            color = (0, 200, 0)
-        else:
-            color = (200, 200, 200)
+        color = (0, 0, 255) if most_common_status == "Crowded" else (0, 200, 0) if most_common_status == "Less traffic" else (200, 200, 200)
 
-        # 🖼 Overlay vehicle count and status
+        # log by minute
+        minute_key = datetime.now().strftime("%H:%M")
+        vehicle_stats[current_camera['id']][minute_key].append(vehicle_count)
+
+
+        # Overlay
         cv2.rectangle(annotated, (10, 10), (350, 70), (0, 0, 0), -1)
         cv2.putText(annotated, f"Vehicles: {int(vehicle_count)}", (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
@@ -110,8 +115,8 @@ def generate_frames(url):
         ret, buffer = cv2.imencode('.jpg', annotated)
         if not ret:
             continue
-        frame_bytes = buffer.tobytes()
 
+        frame_bytes = buffer.tobytes()
         yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 if __name__ == '__main__':
