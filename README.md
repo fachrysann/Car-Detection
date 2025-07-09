@@ -11,6 +11,7 @@ This project uses the smallest YOLOv8 model to perform real-time vehicle detecti
 - 💻 All processing runs locally (on your own device)<br>
 - 🌍 Public Access with Cloudflared:<br>
 To allow others to view the real-time detection system without exposing your local IP or setting up a server, the app uses Cloudflared Tunnel. This makes the Flask app temporarily available over the internet via a secure trycloudflare.com link — perfect for sharing quick demos or remote testing.<br>
+- 📈 Line chart of vehicle per-minute<br>
 ## 🧠 Results with YOLOv8nano
 <img src="Content/GifExample.gif"/>
 This project uses the smallest YOLOv8 model to enable near real-time predictions. While the detections may not always be perfect due to the lightweight nature of the model especially on low-light condition, it demonstrates strong potential for efficient and scalable traffic monitoring solutions.

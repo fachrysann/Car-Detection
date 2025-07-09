@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Multi-Surveillance Car Detection Jakarta</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * {
       box-sizing: border-box;
@@ -27,12 +28,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1); /* more visible shadow */
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
 
     header img {
       height: 38px;
-      width: auto;
+      width: 'auto';
     }
 
     header h1 {
@@ -43,9 +44,35 @@
     }
 
     main {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 40px auto;
       padding: 0 20px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .video-section {
+      min-width: 0;
+    }
+
+    .bottom-section {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .map-section {
+      min-width: 0;
+    }
+
+    .chart-section {
+      min-width: 0;
     }
 
     .camera-label {
@@ -56,11 +83,9 @@
 
     .button-container {
       margin-bottom: 30px;
-    }
-
-    .button-container a {
-      text-decoration: none;
-      margin: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .button-container button {
@@ -72,7 +97,7 @@
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: 0 4px 0 #004e8a; /* 3D shadow */
+      box-shadow: 0 4px 0 #004e8a;
       position: relative;
     }
 
@@ -116,6 +141,67 @@
       50% { opacity: 1; }
     }
 
+    #map {
+      height: 400px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .map-info {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .map-info h3 {
+      margin: 0 0 10px 0;
+      color: #006cb9;
+      font-size: 16px;
+    }
+
+    .map-info p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    .legend-text {
+      font-size: 12px;
+      color: #666;
+    }
+
+    #vehicleChart {
+      height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: white;
+      padding: 10px;
+    }
+
     footer {
       text-align: center;
       font-size: 14px;
@@ -145,6 +231,35 @@
       margin-bottom: 5px;
       font-style: italic;
     }
+
+    @media (max-width: 768px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .bottom-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      header {
+        padding: 15px 20px;
+      }
+      
+      header h1 {
+        font-size: 20px;
+      }
+      
+      .button-container {
+        justify-content: center;
+      }
+      
+      .button-container button {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -162,31 +277,233 @@
 
   <main>
     <p class="notice">*Model developed using pretrained YOLOv8 on COCO dataset. Only set to only detect car, motorcycle, bus, and truck</p>
-    <div class="camera-label">
-      <strong>Kamera saat ini:</strong> {{ current }}
+    
+    <div class="content-grid">
+      <div class="video-section">
+        <div class="camera-label">
+          <strong>Kamera saat ini:</strong> <span id="current-camera-name">Bendungan Hilir</span>
+        </div>
+
+        <div class="button-container">
+          <button onclick="switchCamera('cam 1')" class="active" id="btn-cam1">Bendungan Hilir</button>
+          <button onclick="switchCamera('cam 2')" id="btn-cam2">Gelora Bung Karno</button>
+          <button onclick="switchCamera('cam 3')" id="btn-cam3">Gelora Bung Karno 2</button>
+          <button onclick="switchCamera('cam 4')" id="btn-cam4">Tomang</button>
+          <button onclick="switchCamera('cam 5')" id="btn-cam5">Jati Pulo</button>
+          <button onclick="switchCamera('cam 6')" id="btn-cam6">Cikoko</button>
+        </div>
+
+        <div class="video-container">
+          <div id="loading-text">⏳ Memuat video live...</div>
+          <img id="video-stream" src="/video_feed" alt="Deteksi Kendaraan" onload="hideLoading()" />
+        </div>
+      </div>
     </div>
 
-    <div class="button-container">
-      <a href="/set_camera/cam 1"><button class="{% if current == 'cam 1' %}active{% endif %}">Bendungan Hilir</button></a>
-      <a href="/set_camera/cam 2"><button class="{% if current == 'cam 2' %}active{% endif %}">Gelora Bung Karno</button></a>
-      <a href="/set_camera/cam 3"><button class="{% if current == 'cam 3' %}active{% endif %}">Gelora Bung Karno 2</button></a>
-      <a href="/set_camera/cam 4"><button class="{% if current == 'cam 4' %}active{% endif %}">Tomang</button></a>
-      <a href="/set_camera/cam 5"><button class="{% if current == 'cam 5' %}active{% endif %}">Jati Pulo</button></a>
-      <a href="/set_camera/cam 6"><button class="{% if current == 'cam 6' %}active{% endif %}">Cikoko</button></a>
-    </div>
+    <div class="bottom-section">
+      <div class="map-section">
+        <div id="map"></div>
+        <div class="map-info">
+          <h3 id="location-name">Bendungan Hilir</h3>
+          <p id="location-address">Jl. Jendral Sudirman, Jakarta Pusat</p>
+          <p id="location-district">Kecamatan: Tanah Abang</p>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #31b94f;"></div>
+              <span class="legend-text">Kamera Aktif</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background-color: #363636;"></div>
+              <span class="legend-text">Kamera Lainnya</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="video-container">
-      <div id="loading-text">⏳ Memuat video live...</div>
-      <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Deteksi Kendaraan" onload="hideLoading()" />
-      <canvas id="vehicleChart" height="100" style="margin-top: 20px;"></canvas>
+      <div class="chart-section">
+        <canvas id="vehicleChart"></canvas>
+      </div>
     </div>
   </main>
 
   <footer>
-    Jakarta Smart City Vehicle Detection © {{ year }}
+    Jakarta Smart City Vehicle Detection © 2024
   </footer>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Camera locations and information
+    const cameraLocations = {
+      'cam 1': {
+        name: 'Bendungan Hilir',
+        address: 'Jl. Jendral Sudirman, Jakarta Pusat',
+        district: 'Kecamatan: Tanah Abang',
+        lat: -6.2088,
+        lng: 106.8148,
+        description: 'Persimpangan Bendungan Hilir - Sudirman'
+      },
+      'cam 2': {
+        name: 'Gelora Bung Karno',
+        address: 'Jl. Pintu Satu Senayan, Jakarta Pusat',
+        district: 'Kecamatan: Tanah Abang',
+        lat: -6.2184,
+        lng: 106.8004,
+        description: 'Area Gelora Bung Karno, Senayan'
+      },
+      'cam 3': {
+        name: 'Gelora Bung Karno 2',
+        address: 'Jl. Asia Afrika, Jakarta Pusat',
+        district: 'Kecamatan: Tanah Abang',
+        lat: -6.2186,
+        lng: 106.8020,
+        description: 'Gelora Bung Karno Area 2'
+      },
+      'cam 4': {
+        name: 'Tomang',
+        address: 'Jl. Tomang Raya, Jakarta Barat',
+        district: 'Kecamatan: Grogol Petamburan',
+        lat: -6.1896,
+        lng: 106.7970,
+        description: 'Persimpangan Tomang - Slipi'
+      },
+      'cam 5': {
+        name: 'Jati Pulo',
+        address: 'Jl. Jendral S. Parman, Jakarta Barat',
+        district: 'Kecamatan: Palmerah',
+        lat: -6.1922,
+        lng: 106.7893,
+        description: 'Area Jati Pulo, Palmerah'
+      },
+      'cam 6': {
+        name: 'Cikoko',
+        address: 'Jl. Cikoko, Jakarta Utara',
+        district: 'Kecamatan: Penjaringan',
+        lat: -6.1289,
+        lng: 106.8019,
+        description: 'Area Cikoko, Penjaringan'
+      }
+    };
+
+    let currentCamera = 'cam 1';
+    let map;
+    let markers = {};
+    let activeMarker = null;
+
+    // Initialize map
+    function initMap() {
+      map = L.map('map').setView([-6.2088, 106.8148], 11);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Add markers for all cameras
+      Object.keys(cameraLocations).forEach(camId => {
+        const location = cameraLocations[camId];
+        const isActive = camId === currentCamera;
+        
+        const marker = L.marker([location.lat, location.lng], {
+          icon: createCustomIcon(isActive)
+        }).addTo(map);
+        
+        marker.bindPopup(`
+          <div style="min-width: 200px;">
+            <h3 style="margin: 0 0 5px 0; color: #006cb9;">${location.name}</h3>
+            <p style="margin: 2px 0; font-size: 12px;">${location.address}</p>
+            <p style="margin: 2px 0; font-size: 12px; color: #666;">${location.district}</p>
+            <p style="margin: 5px 0 0 0; font-size: 11px; color: #888;">${location.description}</p>
+          </div>
+        `);
+        
+        marker.on('click', function() {
+          if (camId !== currentCamera) {
+            switchCamera(camId);
+          }
+        });
+        
+        markers[camId] = marker;
+        
+        if (isActive) {
+          activeMarker = marker;
+        }
+      });
+    }
+
+    // Create custom icon for markers
+    function createCustomIcon(isActive) {
+      const color = isActive ? '#31b94f' : '#363636';
+      const size = isActive ? 30 : 25;
+      
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            background-color: ${color};
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+          ">
+            📹
+          </div>
+        `,
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2]
+      });
+    }
+
+    // Switch camera function
+    function switchCamera(camId) {
+      // Update active camera
+      const oldCamera = currentCamera;
+      currentCamera = camId;
+      
+      // Update marker icons
+      if (markers[oldCamera]) {
+        markers[oldCamera].setIcon(createCustomIcon(false));
+      }
+      if (markers[camId]) {
+        markers[camId].setIcon(createCustomIcon(true));
+        activeMarker = markers[camId];
+      }
+      
+      // Update map view
+      const location = cameraLocations[camId];
+      map.setView([location.lat, location.lng], 15, { animate: true });
+      
+      // Update location info
+      document.getElementById('location-name').textContent = location.name;
+      document.getElementById('location-address').textContent = location.address;
+      document.getElementById('location-district').textContent = location.district;
+      document.getElementById('current-camera-name').textContent = location.name;
+      
+      // Update button states
+      document.querySelectorAll('.button-container button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`btn-${camId.replace(' ', '')}`).classList.add('active');
+      
+      // Update video stream
+      const videoStream = document.getElementById('video-stream');
+      const loadingText = document.getElementById('loading-text');
+      
+      loadingText.style.display = 'block';
+      videoStream.src = `/video_feed?cache=${Date.now()}`;
+      
+      // Make request to Flask backend
+      fetch(`/set_camera/${camId}`)
+        .then(response => response.json())
+        .catch(error => console.error('Error switching camera:', error));
+    }
+
     function hideLoading() {
       document.getElementById("loading-text").style.display = "none";
     }
@@ -205,67 +522,71 @@
       document.getElementById("clock-text").textContent = timeStr;
     }
 
-    updateClock();
-    setInterval(updateClock, 60000);  // every minute
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-  const ctx = document.getElementById('vehicleChart').getContext('2d');
-  const chart = new Chart(ctx, {
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initMap();
+      updateClock();
+      setInterval(updateClock, 60000);
+    });
+
+    // Chart.js setup
+    const ctx = document.getElementById('vehicleChart').getContext('2d');
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
-          labels: [],
-          datasets: [{
-              label: 'Vehicle Count',
-              data: [],
-              borderColor: '#006cb9',
-              backgroundColor: 'rgba(0, 108, 185, 0.1)',
-              fill: true,
-              tension: 0.3,
-              pointRadius: 2
-          }]
+        labels: [],
+        datasets: [{
+          label: 'Vehicle Count',
+          data: [],
+          borderColor: '#006cb9',
+          backgroundColor: 'rgba(0, 108, 185, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2
+        }]
       },
       options: {
-          responsive: true,
-          scales: {
-              x: {
-                  title: { display: true, text: 'Time' }
-              },
-              y: {
-                  beginAtZero: true,
-                  title: { display: true, text: 'Vehicles' },
-                  suggestedMax: 20
-              }
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: { display: true, text: 'Time' }
           },
-          plugins: {
-              legend: {
-                  display: false
-              },
-              title: {
-                  display: true,
-                  text: 'Average Vehicle Per-Minute',
-                  font: {
-                      size: 16
-                  },
-                  padding: {
-                      top: 10,
-                      bottom: 20
-                  }
-              }
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Vehicles' },
+            suggestedMax: 20
           }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'Average Vehicle Per-Minute',
+            font: {
+              size: 16
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          }
+        }
       }
-  });
+    });
 
-  async function updateChart() {
+    async function updateChart() {
       const res = await fetch('/vehicle_data');
       const data = await res.json();
 
       chart.data.labels = data.map(d => d.time);
       chart.data.datasets[0].data = data.map(d => d.count);
       chart.update();
-  }
+    }
 
-  setInterval(updateChart, 5000); // update every 5 seconds
+    setInterval(updateChart, 10000);
   </script>
 
 </body>
