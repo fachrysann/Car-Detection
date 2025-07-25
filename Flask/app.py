@@ -7,7 +7,7 @@ import time
 
 app = Flask(__name__)
 
-model = YOLO("yolov8s.pt")  # Load YOLOv8 model
+model = YOLO("yolo11s.pt")  # Load YOLOv8 model
 
 CAMERA_STREAMS = {
     'cam 1': "https://cctv.balitower.co.id/Bendungan-Hilir-003-700014_1/tracks-v1/index.fmp4.m3u8",
@@ -141,7 +141,7 @@ def generate_frames(url):
                 yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
         
         # Small delay to prevent overwhelming the CPU
-        time.sleep(0.033)  # ~30 FPS
+        time.sleep(0.060)  # ~30 FPS
 
 if __name__ == '__main__':
     print("🚀 Running YOLOv8 Flask App")
