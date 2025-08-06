@@ -1,7 +1,7 @@
 # 🚗 Near Real-Time Vehicle Detection from Jakarta’s Traffic CCTVs
 
 ## 📖 Introduction
-This project demonstrates a **near real-time vehicle detection** system using live public CCTV feeds from across Jakarta. Leveraging the lightweight **YOLOv8n (Nano)** model, the system is optimized for fast inference on modest hardware. While it trades off some accuracy for speed, it remains highly effective for scalable traffic monitoring and analysis.
+This project demonstrates a **near real-time vehicle detection** system using live public CCTV feeds from across Jakarta. Leveraging the lightweight **YOLOv11s (Small)** model, the system is optimized for fast inference on modest hardware. While it trades off some accuracy for speed, it remains highly effective for scalable traffic monitoring and analysis.
 
 ---
 
@@ -24,7 +24,7 @@ This project demonstrates a **near real-time vehicle detection** system using li
 
 <img src="Content/GifExamples.gif" alt="Detection Example" width="700"/>
 
-This project uses the **smallest YOLOv8 model** to achieve high-speed predictions, suitable for near real-time analysis. While detection quality may slightly degrade in low-light conditions, the model still performs reliably for urban traffic monitoring tasks.
+This project uses the **smallest YOLOv11 model** to achieve high-speed predictions, suitable for near real-time analysis. While detection quality may slightly degrade in low-light conditions, the model still performs reliably for urban traffic monitoring tasks.
 
 ---
 
