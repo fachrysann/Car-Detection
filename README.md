@@ -1,20 +1,32 @@
-# Near Real-Time Vehicle Detection from Jakarta’s Traffic CCTVs
+# 🚗 Near Real-Time Vehicle Detection from Jakarta’s Traffic CCTVs
+
 ## 📖 Introduction
-This project uses the smallest YOLOv8 model to perform real-time vehicle detection on live public CCTV feeds across Jakarta. The model is lightweight, enabling fast predictions even on modest hardware. Although the accuracy may vary due to the trade-off for speed, the system shows strong potential for efficient and scalable traffic surveillance.<br>
-## 🔧 Key Features:<br>
-- 🔴 Live streaming from public .m3u8 CCTV feeds (e.g. Bendungan Hilir, Gelora, Tomang, Jati Pulo)<br>
-- 🎯 Detection focused on car, motorcycle, bus, and truck<br>
-- 🧠 Model: YOLOv8n (nano) pretrained on COCO dataset<br>
-- 📊 Real-time vehicle counting and traffic status classification (No Traffic, Less Traffic, Crowded)<br>
-- 🌐 Simple Flask-based web interface with camera switching<br>
-- 🕒 Live timestamp overlay<br>
-- 💻 All processing runs locally (on your own device)<br>
-- 🌍 Public Access with Cloudflared:<br>
-To allow others to view the real-time detection system without exposing your local IP or setting up a server, the app uses Cloudflared Tunnel. This makes the Flask app temporarily available over the internet via a secure trycloudflare.com link — perfect for sharing quick demos or remote testing.<br>
-- 📈 Line chart of vehicle per-minute<br>
-## 🧠 Results with YOLOv8nano
-<img src="Content/GifExamples.gif"/>
-This project uses the smallest YOLOv8 model to enable near real-time predictions. While the detections may not always be perfect due to the lightweight nature of the model especially on low-light condition, it demonstrates strong potential for efficient and scalable traffic monitoring solutions.
+This project demonstrates a **near real-time vehicle detection** system using live public CCTV feeds from across Jakarta. Leveraging the lightweight **YOLOv8n (Nano)** model, the system is optimized for fast inference on modest hardware. While it trades off some accuracy for speed, it remains highly effective for scalable traffic monitoring and analysis.
+
+---
+
+## 🔧 Key Features
+
+| Feature                               | Description                                                                 |
+|---------------------------------------|-----------------------------------------------------------------------------|
+| 🔴 Live Streaming                     | Supports `.m3u8` CCTV feeds (e.g. Bendungan Hilir, Gelora, Tomang, Jati Pulo) |
+| 🎯 Object Detection                   | Detects cars, motorcycles, buses, and trucks using **YOLOv8n (COCO pretrained)** |
+| 📊 Traffic Status Classification     | Classifies traffic into `No Traffic`, `Less Traffic`, or `Crowded` based on vehicle count |
+| 🌐 Web Interface                      | Flask-based interface with live stream, camera switching, and detection results |
+| 🕒 Timestamp Overlay                  | Displays current time on the video feed                                    |
+| 📈 Real-Time Chart                    | Line chart showing vehicle count per minute                                |
+| 💻 Local Execution                    | Entire pipeline runs on your own device (no server required)               |
+| 🌍 Cloud Access (Optional)           | Share your app with a public link using **Cloudflared Tunnel**             |
+
+---
+
+## 🧠 Results with YOLOv8n
+
+<img src="Content/GifExamples.gif" alt="Detection Example" width="700"/>
+
+This project uses the **smallest YOLOv8 model** to achieve high-speed predictions, suitable for near real-time analysis. While detection quality may slightly degrade in low-light conditions, the model still performs reliably for urban traffic monitoring tasks.
+
+---
 
 ## 🧪 How to Run Locally
 1. Install dependencies
