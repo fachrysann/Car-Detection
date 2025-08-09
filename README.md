@@ -22,7 +22,7 @@ This project demonstrates a **near real-time vehicle detection** system using li
 
 ## 🧠 Results with YOLOv8n
 
-<img src="Content/GifExamples.gif" alt="Detection Example" width="700"/>
+<img src="Content/GifExamples.gif" alt="Detection Example"/>
 
 This project uses the **smallest YOLOv11 model** to achieve high-speed predictions, suitable for near real-time analysis. While detection quality may slightly degrade in low-light conditions, the model still performs reliably for urban traffic monitoring tasks.
 
