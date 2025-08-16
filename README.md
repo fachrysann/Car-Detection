@@ -41,11 +41,3 @@ This project uses the **smallest YOLOv11 model** to achieve high-speed predictio
 ## 📈 Results
 
 The performance of the **XGBoost model with OSMnx-based route distance** is summarized below:
-
-| Metric | Value |
-|--------|-------|
-| 🧮 **MAE**  | 1.918 |
-| 📏 **RMSE** | 3.679 |
-| 📊 **R²**   | 0.831 |
-
-✅ The results show that incorporating **real road distances from OSMnx** significantly improves the model’s accuracy compared to using straight-line (Euclidean) distances.  
