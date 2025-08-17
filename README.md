@@ -37,7 +37,3 @@ This project uses the **smallest YOLOv11 model** to achieve high-speed predictio
 <pre>http://localhost:5000</pre>
 4. (optional) Expose it online using Cloudflared
 <pre>cloudflared tunnel --url http://localhost:5000</pre>
-
-## 📈 Results
-
-The performance of the **XGBoost model with OSMnx-based route distance** is summarized below:
